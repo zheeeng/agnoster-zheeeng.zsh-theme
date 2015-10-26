@@ -24,6 +24,8 @@
 
 ## ** Zheeeng's patch: **
 ## ** change "print -n" to "echo -n" **
+## ** show time on prompt right hind **
+RPROMPT='[%D{%L:%M:%S %p}]'
 
 ### Segment drawing
 # A few utility functions to make it easy and re-usable to draw segmented prompts
