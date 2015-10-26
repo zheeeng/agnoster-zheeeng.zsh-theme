@@ -118,32 +118,29 @@ prompt_git() {
   if [[ -n "$remote" ]] ; then
     ahead=$(git rev-list @{upstream}..HEAD 2>/dev/null | wc -l | tr -d ' ')
     behind=$(git rev-list HEAD..@{upstream} 2>/dev/null | wc -l | tr -d ' ')
-  else
-    ahead=""
-    behind=""
+
+    # ** Zheeeng's patch: **
+    # ** - render remote git status **
+    if [[ "$ahead" -gt 0 ]] ; then
+      display_ahead="(${ahead}..) "
+    else
+      display_ahead=""
+    fi
+
+    prompt_segment $color blue "${display_ahead}"
+
+    # ** Zheeeng's patch: **
+    # ** - render remote git status **
+
+    if [[ "$behind" -gt 0 ]] ; then
+      display_behind=" (..${ahead}) "
+    else
+      display_behind=" "
+    fi
+
+    prompt_segment cyan magenta "${display_behind}"
+    prompt_segment cyan $PRIMARY_FG "$remote $BRANCH "
   fi
-
-  # ** Zheeeng's patch: **
-  # ** - render remote git status **
-  if [[ "$ahead" -gt 0 ]] ; then
-    display_ahead="(${ahead}..) "
-  else
-    display_ahead=""
-  fi
-
-  prompt_segment $color blue "${display_ahead}"
-
-  # ** Zheeeng's patch: **
-  # ** - render remote git status **
-
-  if [[ "$behind" -gt 0 ]] ; then
-    display_behind=" (..${ahead}) "
-  else
-    display_behind=" "
-  fi
-
-  prompt_segment cyan magenta "${display_behind}"
-  prompt_segment cyan $PRIMARY_FG "$remote $BRANCH "
 }
 
 # Dir: current working directory
