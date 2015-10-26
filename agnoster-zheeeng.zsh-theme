@@ -1,6 +1,6 @@
 # vim:ft=zsh ts=2 sw=2 sts=2
 #
-# agnoster's Theme - https://gist.github.com/3712874
+# Based on agnoster's Theme - https://gist.github.com/3712874
 # A Powerline-inspired theme for ZSH
 #
 # # README
@@ -22,17 +22,23 @@
 # jobs are running in this shell will all be displayed automatically when
 # appropriate.
 
+## ** Zheeeng's patch: **
+## ** change "print -n" to "echo -n" **
+
 ### Segment drawing
 # A few utility functions to make it easy and re-usable to draw segmented prompts
 
 CURRENT_BG='NONE'
 PRIMARY_FG=black
 
+# ** Zheeeng's patch: **
+# ** - add TICK symbol **
 # Characters
 SEGMENT_SEPARATOR="\ue0b0"
 PLUSMINUS="\u00b1"
 BRANCH="\ue0a0"
 DETACHED="\u27a6"
+TICK="\u2714"
 CROSS="\u2718"
 LIGHTNING="\u26a1"
 GEAR="\u2699"
@@ -45,34 +51,38 @@ prompt_segment() {
   [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
   [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
   if [[ $CURRENT_BG != 'NONE' && $1 != $CURRENT_BG ]]; then
-    print -n "%{$bg%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR%{$fg%}"
+    echo -n "%{$bg%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR%{$fg%}"
   else
-    print -n "%{$bg%}%{$fg%}"
+    echo -n "%{$bg%}%{$fg%}"
   fi
   CURRENT_BG=$1
-  [[ -n $3 ]] && print -n $3
+  [[ -n $3 ]] && echo -n $3
 }
 
 # End the prompt, closing any open segments
 prompt_end() {
   if [[ -n $CURRENT_BG ]]; then
-    print -n "%{%k%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR"
+    echo -n "%{%k%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR"
   else
-    print -n "%{%k%}"
+    echo -n "%{%k%}"
   fi
-  print -n "%{%f%}"
+  echo -n "%{%f%}"
   CURRENT_BG=''
 }
 
 ### Prompt components
 # Each component will draw itself, and hide itself if no information needs to be shown
 
+# ** Zheeeng's patch: **
+# ** - seperate $user and $hostname **
+# ** - set new color **
 # Context: user@hostname (who am I and where am I)
 prompt_context() {
   local user=`whoami`
 
   if [[ "$user" != "$DEFAULT_USER" || -n "$SSH_CONNECTION" ]]; then
-    prompt_segment $PRIMARY_FG default " %(!.%{%F{yellow}%}.)$user@%m "
+    prompt_segment red black " %(!.%{%F{yellow}%}.)$user "
+    prompt_segment cyan black " %m "
   fi
 }
 
@@ -97,7 +107,7 @@ prompt_git() {
       ref="$DETACHED ${ref/.../}"
     fi
     prompt_segment $color $PRIMARY_FG
-    print -Pn " $ref"
+    echo -n " $ref"
   fi
 }
 
@@ -106,6 +116,10 @@ prompt_dir() {
   prompt_segment blue $PRIMARY_FG ' %~ '
 }
 
+# ** Zheeeng's patch: **
+# ** - was previous command success? **
+# ** - change yellow lighting to blue lighting**
+# ** - frontground color is determined by previous command executed status **
 # Status:
 # - was there an error
 # - am I root
@@ -113,27 +127,39 @@ prompt_dir() {
 prompt_status() {
   local symbols
   symbols=()
-  [[ $RETVAL -ne 0 ]] && symbols+="%{%F{red}%}$CROSS"
-  [[ $UID -eq 0 ]] && symbols+="%{%F{yellow}%}$LIGHTNING"
+  status_fg=()
+  [[ $RETVAL -ne 0 ]] && { symbols+="%{%F{red}%}$CROSS" && status_fg="black"; } || { symbols+="%{%F{green}%}$TICK" && status_fg="yellow"; }
+  [[ $UID -eq 0 ]] && symbols+="%{%F{blue}%}$LIGHTNING"
   [[ $(jobs -l | wc -l) -gt 0 ]] && symbols+="%{%F{cyan}%}$GEAR"
 
-  [[ -n "$symbols" ]] && prompt_segment $PRIMARY_FG default " $symbols "
+  [[ -n "$symbols" ]] && prompt_segment $status_fg default " $symbols "
 }
 
+# ** Zheeeng's patch: **
+# ** - insert a line **
+prompt_next_line() {
+  echo ''
+  CURRENT_BG='NONE'
+}
+
+# ** Zheeeng's patch: **
+# ** - rearrange the prompt components **
 ## Main prompt
 prompt_agnoster_main() {
   RETVAL=$?
   CURRENT_BG='NONE'
-  prompt_status
   prompt_context
   prompt_dir
   prompt_git
+  prompt_end
+  prompt_next_line
+  prompt_status
   prompt_end
 }
 
 prompt_agnoster_precmd() {
   vcs_info
-  PROMPT='%{%f%b%k%}$(prompt_agnoster_main) '
+  PROMPT='%{%f%b%k%}$(prompt_agnoster_main)'
 }
 
 prompt_agnoster_setup() {
