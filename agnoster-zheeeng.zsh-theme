@@ -82,7 +82,7 @@ prompt_context() {
 
   if [[ "$user" != "$DEFAULT_USER" || -n "$SSH_CONNECTION" ]]; then
     prompt_segment red black " %(!.%{%F{yellow}%}.)$user "
-    prompt_segment cyan black " %m "
+    prompt_segment white black " %m "
   fi
 }
 
@@ -92,23 +92,58 @@ prompt_git() {
   is_dirty() {
     test -n "$(git status --porcelain --ignore-submodules)"
   }
+
+  # ** Zheeeng's modify: **
+  # ** - revamap **
   ref="$vcs_info_msg_0_"
   if [[ -n "$ref" ]]; then
     if is_dirty; then
       color=yellow
-      ref="${ref} $PLUSMINUS"
+      display_ref="${ref} $PLUSMINUS "
     else
       color=green
-      ref="${ref} "
+      display_ref="${ref} "
     fi
     if [[ "${ref/.../}" == "$ref" ]]; then
-      ref="$BRANCH $ref"
+      display_ref="$BRANCH $display_ref"
     else
-      ref="$DETACHED ${ref/.../}"
+      display_ref="$DETACHED ${display_ref/.../}"
     fi
-    prompt_segment $color $PRIMARY_FG
-    echo -n " $ref"
+    prompt_segment $color $PRIMARY_FG " $display_ref"
   fi
+
+  # ** Zheeeng's patch: **
+  # ** - count HEAD ahead and behind **
+  remote=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null)
+  if [[ -n "$remote" ]] ; then
+    ahead=$(git rev-list @{upstream}..HEAD 2>/dev/null | wc -l | tr -d ' ')
+    behind=$(git rev-list HEAD..@{upstream} 2>/dev/null | wc -l | tr -d ' ')
+  else
+    ahead=""
+    behind=""
+  fi
+
+  # ** Zheeeng's patch: **
+  # ** - render remote git status **
+  if [[ "$ahead" -gt 0 ]] ; then
+    display_ahead="(${ahead}..) "
+  else
+    display_ahead=""
+  fi
+
+  prompt_segment $color blue "${display_ahead}"
+
+  # ** Zheeeng's patch: **
+  # ** - render remote git status **
+
+  if [[ "$behind" -gt 0 ]] ; then
+    display_behind=" (..${ahead}) "
+  else
+    display_behind=" "
+  fi
+
+  prompt_segment cyan magenta "${display_behind}"
+  prompt_segment cyan $PRIMARY_FG "$remote $BRANCH "
 }
 
 # Dir: current working directory
@@ -159,7 +194,7 @@ prompt_agnoster_main() {
 
 prompt_agnoster_precmd() {
   vcs_info
-  PROMPT='%{%f%b%k%}$(prompt_agnoster_main)'
+  PROMPT='%{%f%b%k%}$(prompt_agnoster_main) '
 }
 
 prompt_agnoster_setup() {
