@@ -9,18 +9,7 @@
 # [Powerline-patched font](https://gist.github.com/1595572).
 #
 # In addition, I recommend the
-# [Solarized theme](https://github.com/altercation/solarized/) and, if you're
-# using it on Mac OS X, [iTerm 2](http://www.iterm2.com/) over Terminal.app -
-# it has significantly better color fidelity.
-#
-# # Goals
-#
-# The aim of this theme is to only show you *relevant* information. Like most
-# prompts, it will only show git information when in a git working directory.
-# However, it goes a step further: everything from the current user and
-# hostname to whether the last call exited with an error to whether background
-# jobs are running in this shell will all be displayed automatically when
-# appropriate.
+# [Tomorrow Night Eighties theme](https://github.com/chriskempson/tomorrow-theme/tree/master/iTerm2)
 
 ## ** Zheeeng's patch: **
 ## ** change "print -n" to "echo -n" **
@@ -34,20 +23,22 @@ CURRENT_BG='NONE'
 PRIMARY_FG=black
 
 # ** Zheeeng's patch: **
-# ** - add TICK symbol **
+# ** - Add TICK symbol **
+# ** - Add HEART symbol **
+# ** - Remove PLUSMINUS symbol **
 # Characters
 SEGMENT_SEPARATOR="\ue0b0"
-PLUSMINUS="\u00b1"
 BRANCH="\ue0a0"
 DETACHED="\u27a6"
 TICK="\u2714"
 CROSS="\u2718"
 LIGHTNING="\u26a1"
 GEAR="\u2699"
+HEART="\u2764"
 
 # Begin a segment
 # Takes two arguments, background and foreground. Both can be omitted,
-# rendering default background/foreground.
+# Rendering default background/foreground.
 prompt_segment() {
   local bg fg
   [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
@@ -76,8 +67,8 @@ prompt_end() {
 # Each component will draw itself, and hide itself if no information needs to be shown
 
 # ** Zheeeng's patch: **
-# ** - seperate $user and $hostname **
-# ** - set new color **
+# ** - Display $user and $hostname seperately **
+# ** - New fg & bg color for $user and $hostname **
 # Context: user@hostname (who am I and where am I)
 prompt_context() {
   local user=`whoami`
@@ -91,27 +82,48 @@ prompt_context() {
 # Git: branch/detached head, dirty status
 prompt_git() {
   local color ref
+
   is_dirty() {
     test -n "$(git status --porcelain --ignore-submodules)"
   }
+  # ** Zheeeng's patch: **
+  # ** - Display Git files index status **
+  # ** Takes one argument, background color **
+  display_index_status() {
+    local bg_color added unadded total
+
+    bg_color=$1
+    added=$(git status --porcelain --ignore-submodules | grep '^[MADRCU].\ ' | wc -l | tr -d ' ')
+    unadded=$(git status --porcelain --ignore-submodules | grep '^.[MADRCU]\ \|^??\ ' | wc -l | tr -d ' ')
+    total=$[$added + $unadded]
+
+    if [[ $added -eq 0 ]]; then
+      prompt_segment $bg_color cyan "u:$unadded t:$total "
+    elif [[ $unadded -eq 0 ]]; then
+      prompt_segment $bg_color black "t:$total "
+      prompt_segment $bg_color red "$HEART "
+    else
+      prompt_segment $bg_color blue "a:$added u:$unadded "
+    fi
+  }
 
   # ** Zheeeng's modify: **
-  # ** - revamap **
+  # ** - Revamap **
   ref="$vcs_info_msg_0_"
   if [[ -n "$ref" ]]; then
+    if [[ "${ref/.../}" == "$ref" ]]; then
+      display_ref=" $BRANCH $ref "
+    else
+      display_ref=" $DETACHED ${ref/.../} "
+    fi
     if is_dirty; then
       color=yellow
-      display_ref="${ref} $PLUSMINUS "
+      prompt_segment $color $PRIMARY_FG "$display_ref"
+      display_index_status $color
     else
       color=green
-      display_ref="${ref} "
+      prompt_segment $color $PRIMARY_FG "$display_ref"
     fi
-    if [[ "${ref/.../}" == "$ref" ]]; then
-      display_ref="$BRANCH $display_ref"
-    else
-      display_ref="$DETACHED ${display_ref/.../}"
-    fi
-    prompt_segment $color $PRIMARY_FG " $display_ref"
   fi
 
   # ** Zheeeng's patch: **
@@ -121,25 +133,18 @@ prompt_git() {
     ahead=$(git rev-list @{upstream}..HEAD 2>/dev/null | wc -l | tr -d ' ')
     behind=$(git rev-list HEAD..@{upstream} 2>/dev/null | wc -l | tr -d ' ')
 
-    # ** Zheeeng's patch: **
-    # ** - render remote git status **
     if [[ "$ahead" -gt 0 ]] ; then
-      display_ahead="(${ahead}..) "
+      display_ahead="(${ahead}.. "
     else
       display_ahead=""
     fi
-
     prompt_segment $color blue "${display_ahead}"
 
-    # ** Zheeeng's patch: **
-    # ** - render remote git status **
-
     if [[ "$behind" -gt 0 ]] ; then
-      display_behind=" (..${ahead}) "
+      display_behind=" ..${ahead}) "
     else
       display_behind=" "
     fi
-
     prompt_segment cyan magenta "${display_behind}"
     prompt_segment cyan $PRIMARY_FG "$remote $BRANCH "
   fi
@@ -170,14 +175,14 @@ prompt_status() {
 }
 
 # ** Zheeeng's patch: **
-# ** - insert a line **
+# ** - Insert a line **
 prompt_next_line() {
   echo ''
   CURRENT_BG='NONE'
 }
 
 # ** Zheeeng's patch: **
-# ** - rearrange the prompt components **
+# ** - Rearrange the prompt components **
 ## Main prompt
 prompt_agnoster_main() {
   RETVAL=$?
