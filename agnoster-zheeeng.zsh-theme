@@ -127,7 +127,7 @@ prompt_git() {
   fi
 
   # ** Zheeeng's patch: **
-  # ** - count HEAD ahead and behind **
+  # ** - Count HEAD ahead and behind **
   remote=$(git rev-parse --abbrev-ref @{upstream} 2>/dev/null)
   if [[ -n "$remote" ]] ; then
     ahead=$(git rev-list @{upstream}..HEAD 2>/dev/null | wc -l | tr -d ' ')
@@ -156,9 +156,9 @@ prompt_dir() {
 }
 
 # ** Zheeeng's patch: **
-# ** - was previous command success? **
-# ** - change yellow lighting to blue lighting**
-# ** - frontground color is determined by previous command executed status **
+# ** - Was previous command success? **
+# ** - Change yellow lighting to blue lighting**
+# ** - Background color is determined by previous command executed status **
 # Status:
 # - was there an error
 # - am I root
