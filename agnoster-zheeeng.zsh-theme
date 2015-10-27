@@ -25,6 +25,7 @@ PRIMARY_FG=black
 # ** Zheeeng's patch: **
 # ** - Add TICK symbol **
 # ** - Add HEART symbol **
+# ** - Add ANCHOR symbol **
 # ** - Remove PLUSMINUS symbol **
 # Characters
 SEGMENT_SEPARATOR="\ue0b0"
@@ -35,6 +36,7 @@ CROSS="\u2718"
 LIGHTNING="\u26a1"
 GEAR="\u2699"
 HEART="\u2764"
+ANCHOR="\u2693"
 
 # Begin a segment
 # Takes two arguments, background and foreground. Both can be omitted,
@@ -67,14 +69,16 @@ prompt_end() {
 # Each component will draw itself, and hide itself if no information needs to be shown
 
 # ** Zheeeng's patch: **
+# ** - Display user's privilege **
 # ** - Display $user and $hostname seperately **
 # ** - New fg & bg color for $user and $hostname **
 # Context: user@hostname (who am I and where am I)
 prompt_context() {
-  local user=`whoami`
-
-  if [[ "$user" != "$DEFAULT_USER" || -n "$SSH_CONNECTION" ]]; then
-    prompt_segment red black " %(!.%{%F{yellow}%}.)$user "
+  local user=`whoami` privilege
+  [[ $UID -eq 0 ]] && privilege+=" %{%F{yellow}%}$LIGHTNING " || privilege+=" %{%F{white}%}$ANCHOR "
+  prompt_segment red default "$privilege "
+  if [[ "$user" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
+    prompt_segment red black "$user "
     prompt_segment white black " %m "
   fi
 }
@@ -156,8 +160,8 @@ prompt_dir() {
 }
 
 # ** Zheeeng's patch: **
-# ** - Was previous command success? **
-# ** - Change yellow lighting to blue lighting**
+# ** - Add ' was previous command success? ' **
+# ** - Move 'am I root' to $user info **
 # ** - Background color is determined by previous command executed status **
 # Status:
 # - was there an error
@@ -167,11 +171,9 @@ prompt_status() {
   local symbols
   symbols=()
   status_fg=()
-  [[ $RETVAL -ne 0 ]] && { symbols+="%{%F{red}%}$CROSS" && status_fg="black"; } || { symbols+="%{%F{green}%}$TICK" && status_fg="yellow"; }
-  [[ $UID -eq 0 ]] && symbols+="%{%F{blue}%}$LIGHTNING"
-  [[ $(jobs -l | wc -l) -gt 0 ]] && symbols+="%{%F{cyan}%}$GEAR"
-
-  [[ -n "$symbols" ]] && prompt_segment $status_fg default " $symbols "
+  [[ $RETVAL -ne 0 ]] && { symbols+=" %{%F{red}%}$CROSS " && status_fg="black"; } || { symbols+=" %{%F{green}%}$TICK " && status_fg="yellow"; }
+  [[ $(jobs -l | wc -l) -gt 0 ]] && symbols+="%{%F{blue}%}$GEAR "
+  [[ -n "$symbols" ]] && prompt_segment $status_fg default "$symbols"
 }
 
 # ** Zheeeng's patch: **
