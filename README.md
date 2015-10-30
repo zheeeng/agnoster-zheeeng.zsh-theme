@@ -49,3 +49,4 @@ The recommended iTerm2 theme:
 
 - [ ] install.sh
 - [ ] SVN, HG support
+- [ ] virtualenv, rbenv, jenv, node-n support
