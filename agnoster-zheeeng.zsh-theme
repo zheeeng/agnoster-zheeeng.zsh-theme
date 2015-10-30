@@ -102,12 +102,12 @@ prompt_git() {
     total=$[$added + $unadded]
 
     if [[ $added -eq 0 ]]; then
-      prompt_segment $bg_color cyan "u:$unadded t:$total "
+      prompt_segment $bg_color 88 "u:$unadded t:$total "
     elif [[ $unadded -eq 0 ]]; then
       prompt_segment $bg_color black "t:$total "
       prompt_segment $bg_color red "$HEART "
     else
-      prompt_segment $bg_color blue "a:$added u:$unadded "
+      prompt_segment $bg_color 52 "a:$added u:$unadded "
     fi
   }
 
@@ -142,14 +142,14 @@ prompt_git() {
     else
       display_ahead=""
     fi
-    prompt_segment $color blue "${display_ahead}"
+    prompt_segment $color $[70-$[$[$ahead>5]*5+$[$ahead<=5]*$ahead]] "$display_ahead"
 
     if [[ "$behind" -gt 0 ]] ; then
-      display_behind=" ..${ahead}) "
+      display_behind=" ..${behind}) "
     else
       display_behind=" "
     fi
-    prompt_segment cyan magenta "${display_behind}"
+    prompt_segment cyan $[220-$[$[$behind>5]*5+$[$behind<=5]*$behind]] "$display_behind"
     prompt_segment cyan $PRIMARY_FG "$remote $BRANCH "
   fi
 }
