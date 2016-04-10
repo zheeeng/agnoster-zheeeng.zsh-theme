@@ -1,5 +1,5 @@
 # agnoster-zheeeng.zsh-theme
-**agnoster.zsh-theme revamp based on &lt;https://github.com/agnoster/agnoster-zsh-theme>**
+**agnoster.zsh-theme revamp based on <https://github.com/agnoster/agnoster-zsh-theme>**
 
 ## Compatibility
 
@@ -48,5 +48,12 @@ The recommended iTerm2 theme:
 ## Future Work
 
 - [ ] install.sh
+- [ ] git stash info
 - [ ] SVN, HG support
-- [ ] virtualenv, rbenv, jenv, node-n support
+- [ ] virtualenv, rbenv, jenv, nvm support
+- [ ] Todo timer
+
+## Improvement
+
+- [ ] Fix blank space coloring once window wrapping cause prompt line breaking.
+- [ ] The position of time info.
