@@ -48,6 +48,7 @@ The recommended iTerm2 theme:
 ## Future Work
 
 - [ ] install.sh
+- [ ] vagrant status
 - [ ] git stash info
 - [ ] SVN, HG support
 - [ ] virtualenv, rbenv, jenv, nvm support
