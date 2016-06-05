@@ -49,6 +49,7 @@ The recommended iTerm2 theme:
 
 - [ ] install.sh
 - [ ] vagrant status
+- [ ] docker status
 - [ ] git stash info
 - [ ] SVN, HG support
 - [ ] virtualenv, rbenv, jenv, nvm support
